@@ -23,6 +23,8 @@ api_key_secret = modified[1]
 access_token = modified[2]
 access_token_secret = modified[3] 
 
+print(api_key, api_key_secret, access_token, access_token_secret)
+
 # basic authentication 
 
 authenticator = tweepy.OAuthHandler(api_key, api_key_secret)
@@ -74,7 +76,7 @@ def get_index_data(url):
 # Tweet data
 def tweetAll() :
 
-    # URLs for wanted indexes
+    # URLs 
 
     # url0 = "https://www.google.com/finance/quote/DAX:INDEXDB"
     url1 =  "https://www.google.com/finance/quote/OMXHPI:INDEXNASDAQ"
