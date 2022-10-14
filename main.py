@@ -1,4 +1,6 @@
 import tweepy
+from random import seed
+import requests
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
@@ -48,16 +50,13 @@ def get_index_data(url):
     soup = BeautifulSoup(html, "html.parser")
 
     # GET data from specific elements
-    city = soup.find("a", attrs = {"class" : "YMlKec fxKbKc"}) # kaupungin nimi
-    tapahtuma = soup.find("div", attrs = {"class" : "P6K39c"}) # get last days closing points
-    aika = soup.find("div", attrs = {"class" : "zzDege"}) # get index name
+    city = soup.find("h1", attrs = {"class" : "artlnkw"}) # kaupungin nimi
+    tapahtuma = soup.find("h2", attrs = {"class" : "artlnkw"}) # tapahtuma
+    aika = soup.find("p", attrs = {"class" : "artlnkw"}).getText() # get index name
     
     # converting to float for calculations
     points_now_format = float(city.text.replace(",", ""))
     points_start_format = float(tapahtuma.text.replace(",", ""))
-
-    # counting prosentual rise/fall of index 
-    #prosentual_rise = str("{0:.2f}".format(((points_now_format / points_start_format) - 1) * 100))
 
     # append data to array
     data.append(aika.text)
@@ -72,8 +71,13 @@ def tweetAll() :
 
     # URLs 
 
-    # url0 = "https://www.tilannehuone.fi/index.php"
-    url1 =  "https://www.google.com/finance/quote/OMXHPI:INDEXNASDAQ"
+    # url0 = ""
+    url1 =  "https://www.tilannehuone.fi"
+    session_obj = requests.Session()
+    response = session_obj.get(url1, headers={"User-Agent": "Mozilla/5.0"})
+ 
+    print(response.status_code)
+
     # url3 = 
     # url4 =
     # url5 =
