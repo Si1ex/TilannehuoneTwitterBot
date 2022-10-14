@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 # reading keys from file
 
 # open keys.txt file
-file = open("C:\Users\Daniel\Desktop\keys.txt","r")
+file = open("C:\\Users\\Daniel\\Desktop\\keys.txt", "r")
 read = file.readlines()
 
 # create new array for elements
@@ -23,7 +23,6 @@ api_key_secret = modified[1]
 access_token = modified[2]
 access_token_secret = modified[3] 
 
-print(api_key, api_key_secret, access_token, access_token_secret)
 
 # basic authentication 
 
@@ -37,7 +36,6 @@ print("auth OK...")
 
 # functions
 
-# GET data from Google Finance about indexes
 def get_index_data(url):
 
     print("finding data...")
@@ -50,25 +48,21 @@ def get_index_data(url):
     soup = BeautifulSoup(html, "html.parser")
 
     # GET data from specific elements
-    points_now = soup.find("div", attrs = {"class" : "YMlKec fxKbKc"}) # get index point data
-    points_start = soup.find("div", attrs = {"class" : "P6K39c"}) # get last days closing points
-    index_name = soup.find("div", attrs = {"class" : "zzDege"}) # get index name
+    city = soup.find("a", attrs = {"class" : "YMlKec fxKbKc"}) # kaupungin nimi
+    tapahtuma = soup.find("div", attrs = {"class" : "P6K39c"}) # get last days closing points
+    aika = soup.find("div", attrs = {"class" : "zzDege"}) # get index name
     
     # converting to float for calculations
-    points_now_format = float(points_now.text.replace(",", ""))
-    points_start_format = float(points_start.text.replace(",", ""))
+    points_now_format = float(city.text.replace(",", ""))
+    points_start_format = float(tapahtuma.text.replace(",", ""))
 
     # counting prosentual rise/fall of index 
-    prosentual_rise = str("{0:.2f}".format(((points_now_format / points_start_format) - 1) * 100))
-
-    # adding +-sign front of prosentual rise if prosentual_rise is positive
-    if (float(prosentual_rise) > 0):
-        prosentual_rise = "+" + prosentual_rise
+    #prosentual_rise = str("{0:.2f}".format(((points_now_format / points_start_format) - 1) * 100))
 
     # append data to array
-    data.append(index_name.text)
-    data.append(points_now.text)
-    data.append(prosentual_rise)
+    data.append(aika.text)
+    data.append(city.text)
+    data.append(aika.text)
 
     # return data[]
     return data
@@ -78,20 +72,20 @@ def tweetAll() :
 
     # URLs 
 
-    # url0 = "https://www.google.com/finance/quote/DAX:INDEXDB"
+    # url0 = "https://www.tilannehuone.fi/index.php"
     url1 =  "https://www.google.com/finance/quote/OMXHPI:INDEXNASDAQ"
-    # url3 =
+    # url3 = 
     # url4 =
     # url5 =
     # url6 =
     # url7 =
 
     # dax_data = get_index_data(url0)[0] + ": " + get_index_data(url0)[1] + " " + get_index_data(url0)[2] 
-    omxhpi_data = get_index_data(url1)[0] + ": " + get_index_data(url1)[1] + " " + get_index_data(url1)[2]
+    data = get_index_data(url1)[0] + ": " + get_index_data(url1)[1] + " " + get_index_data(url1)[2]
 
     # Posting tweet
     print("updating twitter status...")
-    api.update_status(omxhpi_data + "\n" + "#talous")
+    api.update_status(data)
     print("Status updated!")
 
 tweetAll()
