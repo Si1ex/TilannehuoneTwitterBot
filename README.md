@@ -48,8 +48,11 @@ The script is set up to fetch data from the Tilannehuone website and post alerts
 
 ## Acknowledgments
 Tweepy: Library for accessing the Twitter API.
+
 Requests: HTTP library for making requests.
+
 Beautiful Soup: Library for pulling data out of HTML and XML files.
+
 python-dotenv: Library for reading variables from a .env file.
 
 ## License
