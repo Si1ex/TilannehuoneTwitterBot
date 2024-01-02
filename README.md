@@ -39,6 +39,7 @@ pip install tweepy requests beautifulsoup4 python-dotenv
 ## Code Structure
 
 your_script.py: The main script containing the Twitter bot logic.
+
 requirements.txt: A file listing all Python dependencies.
 
 ## Usage
