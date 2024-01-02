@@ -1,95 +1,79 @@
 import tweepy
-from random import seed
 import requests
-from urllib.request import urlopen
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+import os
 
-#########################################################################################
-# Twitter API setup
+# Load environment variables from the .env file
+load_dotenv()
 
-# reading keys from file
-
-# open keys.txt file
-file = open("C:\\Users\\Daniel\\Desktop\\keys.txt", "r")
-read = file.readlines()
-
-# create new array for elements
-modified = []
-
-for line in read:
-    modified.append(line.strip())
-
-# keys
-api_key = modified[0]
-api_key_secret = modified[1]
-access_token = modified[2]
-access_token_secret = modified[3] 
-
-
-# basic authentication 
-
-authenticator = tweepy.OAuthHandler(api_key, api_key_secret)
-authenticator.set_access_token(access_token, access_token_secret)
-
-api = tweepy.API(authenticator, wait_on_rate_limit = True)
+client = tweepy.Client(
+    consumer_key=os.getenv("API_KEY"),
+    consumer_secret=os.getenv("API_KEY_SECRET"),
+    access_token=os.getenv("ACCESS_TOKEN"),
+    access_token_secret=os.getenv("ACCESS_TOKEN_SECRET")
+)
 
 print("auth OK...")
-#########################################################################################
 
-# functions
-
+# Function to get data from the website
 def get_index_data(url):
-
-    print("finding data...")
-
     # define array for collecting values
     data = []
 
-    # read data from internet
-    html = urlopen(url, timeout = 10).read()
-    soup = BeautifulSoup(html, "html.parser")
+    # Set the user agent
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
 
-    # GET data from specific elements
-    city = soup.find("h1", attrs = {"class" : "artlnkw"}) # kaupungin nimi
-    tapahtuma = soup.find("h2", attrs = {"class" : "artlnkw"}) # tapahtuma
-    aika = soup.find("p", attrs = {"class" : "artlnkw"}).getText() # get index name
+    # read data from the internet with the user agent
+    response = requests.get(url, headers=headers)
     
-    # converting to float for calculations
-    points_now_format = float(city.text.replace(",", ""))
-    points_start_format = float(tapahtuma.text.replace(",", ""))
+    if response.status_code != 200:
+        print("Error fetching page")
+        exit()
+    else:
+        content = response.content
 
-    # append data to array
-    data.append(aika.text)
-    data.append(city.text)
-    data.append(aika.text)
-
-    # return data[]
+    soup = BeautifulSoup(content, "html.parser")
+    
+    results = []
+    
+    # GET data from specific elements
+    city_element = soup.find("td", class_="kunta")
+    pvm_td_element = soup.find("td", class_="pvm")
+    td_elements = soup.find_all("td", {"width": "100%"})
+    
+    #Iterating over a list of HTML td elements
+    for td_element in td_elements:
+        text_content = td_element.get_text(strip=True)
+        results.append(text_content)
+        
+    city = city_element.text.strip() if city_element else "Kaupunki ei saatavilla"
+    
+    ajankohta = pvm_td_element.text.strip() if pvm_td_element else "Aika ei saatavilla"
+    
+    tapahtuma = results[1]
+    
+    # Append extracted data to the array
+    data.append(city)
+    data.append(ajankohta)
+    data.append(tapahtuma)
     return data
 
 # Tweet data
-def tweetAll() :
+def tweetAll(data):
+    print("finding data...")
 
-    # URLs 
-
-    # url0 = ""
-    url1 =  "https://www.tilannehuone.fi"
-    session_obj = requests.Session()
-    response = session_obj.get(url1, headers={"User-Agent": "Mozilla/5.0"})
- 
-    print(response.status_code)
-
-    # url3 = 
-    # url4 =
-    # url5 =
-    # url6 =
-    # url7 =
-
-    # dax_data = get_index_data(url0)[0] + ": " + get_index_data(url0)[1] + " " + get_index_data(url0)[2] 
-    data = get_index_data(url1)[0] + ": " + get_index_data(url1)[1] + " " + get_index_data(url1)[2]
+    # Format the tweet string
+    tweet = f"Hälytys! Paikkakunnalla {data[0]} ajankohtana {data[1]} tapahtui {data[2]}"
 
     # Posting tweet
     print("updating twitter status...")
-    api.update_status(data)
+    client.create_tweet(text=tweet)
     print("Status updated!")
 
-tweetAll()
+# Example usage
+url = "https://www.tilannehuone.fi/halytys.php"
+data = get_index_data(url)
+tweetAll(data)
