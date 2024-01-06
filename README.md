@@ -12,22 +12,51 @@ Before running the script, make sure you have the necessary dependencies install
 
 ```bash
 pip install tweepy requests beautifulsoup4 python-dotenv
-````
+```
 
-Please replace `your_api_key`, `your_api_key_secret`, `your_access_token`, and `your_access_token_secret` with your actual Twitter API keys and tokens. The script is currently set to scrape data from "https://www.tilannehuone.fi/halytys.php", but you can modify this to suit your needs.
+## Getting Started
 
-Create a .env file in the same directory as the script, and add your Twitter API keys and tokens:
-````
-API_KEY=your_api_key
-API_KEY_SECRET=your_api_key_secret
-ACCESS_TOKEN=your_access_token
-ACCESS_TOKEN_SECRET=your_access_token_secret
-````
-Create a folder "tmp" and create a file called last_emergency.txt in that folder.
+1. Clone the repository:
+   ```
+   git clone https://github.com/your-username/your-repository.git
+   cd your-repository```
+2. Create a virtual environment (optional but recommended):
+   ```
+   python -m venv venv
+   source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+   ```
+3. Install dependencies:
+   ```pip install -r requirements.txt```
+4. Create a .env file and add your Twitter API credentials:
+   ```
+   API_KEY=your_api_key
+   API_KEY_SECRET=your_api_key_secret
+   ACCESS_TOKEN=your_access_token
+   ACCESS_TOKEN_SECRET=your_access_token_secret```
+5. Run the script:
+   ```python your_script.py```
 
-Run the script with Python:
-````
-python lambda_function.py
-````
+## Code Structure
 
-Made by Daniel Kurhinen (and ChatGPT)
+your_script.py: The main script containing the Twitter bot logic.
+
+requirements.txt: A file listing all Python dependencies.
+
+## Usage
+
+The script is set up to fetch data from the Tilannehuone website and post alerts on Twitter. To use it, simply run the script, and it will print status messages indicating the process.
+
+## Acknowledgments
+Tweepy: Library for accessing the Twitter API.
+
+Requests: HTTP library for making requests.
+
+Beautiful Soup: Library for pulling data out of HTML and XML files.
+
+python-dotenv: Library for reading variables from a .env file.
+
+## License
+This project is licensed under the MIT License.
+
+## Author
+Daniel Kurhinen (and ChatGPT)
