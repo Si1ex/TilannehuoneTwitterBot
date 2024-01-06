@@ -23,10 +23,11 @@ API_KEY_SECRET=your_api_key_secret
 ACCESS_TOKEN=your_access_token
 ACCESS_TOKEN_SECRET=your_access_token_secret
 ````
+Create a folder "tmp" and create a file called last_emergency.txt in that folder.
 
 Run the script with Python:
 ````
-python main.py
+python lambda_function.py
 ````
 
 Made by Daniel Kurhinen (and ChatGPT)

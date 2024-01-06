@@ -1,1 +1,17 @@
 .env
+
+/envi
+
+mainn.py
+
+lambda_function.zip
+
+layer.zip
+
+/python
+
+/my-lambda-layer
+
+buildpackage.sh
+
+createlambdalayer.sh
