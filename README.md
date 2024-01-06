@@ -33,7 +33,8 @@ pip install tweepy requests beautifulsoup4 python-dotenv
    API_KEY_SECRET=your_api_key_secret
    ACCESS_TOKEN=your_access_token
    ACCESS_TOKEN_SECRET=your_access_token_secret```
-5. Run the script:
+5. Create "tmp" folder and "last_emergency.txt" file in that folder
+6. Run the script:
    ```python your_script.py```
 
 ## Code Structure
