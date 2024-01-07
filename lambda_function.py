@@ -1,15 +1,14 @@
 import tweepy
+from ratelimit import limits, sleep_and_retry
 import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import os
 import logging
-import time
 
 # Load environment variables from the .env file
 load_dotenv()
 
-# Initialize Tweepy client outside the Lambda handler
 client = tweepy.Client(
     consumer_key=os.getenv("API_KEY"),
     consumer_secret=os.getenv("API_KEY_SECRET"),
@@ -24,30 +23,21 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
 EMERGENCY_FILE_PATH = "tmp/last_emergency.txt"
-MAX_RETRIES = 3
 
-def make_twitter_request(api, endpoint, **params):
-    retries = 0
+# Decorator for rate limiting
+@sleep_and_retry
+@limits(calls=50, period=900)  # 50 requests every 15 minutes
+def make_request(url):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
 
-    while retries < MAX_RETRIES:
-        try:
-            # Make the API request
-            response = api.create_tweet(text=params['status'])
-            return response
-
-        except tweepy.TweepyException as e:
-            # Handle rate limit exceeded
-            logger.warning(f"Rate limit exceeded. Retrying in {2 ** retries} seconds.")
-            time.sleep(2 ** retries)
-            retries += 1
-
-        except Exception as e:
-            # Handle other exceptions
-            logger.error(f"An error occurred: {e}")
-            break
-
-    logger.error("Max retries reached. Unable to complete the request.")
-    return None
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code != 200:
+        raise Exception(f'API response: {response.status_code}')
+    
+    return response
 
 def get_last_emergency():
     try:
@@ -62,28 +52,20 @@ def set_last_emergency(last_emergency):
         file.write(last_emergency_str)
 
 def get_index_data(url):
-    data = []
+    try:
+        response = make_request(url)
+        soup = BeautifulSoup(response.content, "html.parser")
+        
+        results = [td.get_text(strip=True) for td in soup.find_all("td", {"width": "100%"})]
 
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
+        city = soup.find("td", class_="kunta").text.strip() if soup.find("td", class_="kunta") else "Kaupunki ei saatavilla"
+        ajankohta = soup.find("td", class_="pvm").text.strip() if soup.find("td", class_="pvm") else "Aika ei saatavilla"
+        tapahtuma = results[1] if len(results) > 1 else ""
 
-    response = requests.get(url, headers=headers)
-    
-    if response.status_code != 200:
-        logger.error("Error fetching page")
+        return [city, ajankohta, tapahtuma]
+    except Exception as e:
+        logger.error(f"An error occurred: {e}")
         return None
-
-    soup = BeautifulSoup(response.content, "html.parser")
-    
-    results = [td.get_text(strip=True) for td in soup.find_all("td", {"width": "100%"})]
-
-    city = soup.find("td", class_="kunta").text.strip() if soup.find("td", class_="kunta") else "Kaupunki ei saatavilla"
-    ajankohta = soup.find("td", class_="pvm").text.strip() if soup.find("td", class_="pvm") else "Aika ei saatavilla"
-    tapahtuma = results[1] if len(results) > 1 else ""
-
-    data.extend([city, ajankohta, tapahtuma])
-    return data
 
 def tweet_all(data):
     logger.info("Finding data...")
@@ -93,7 +75,8 @@ def tweet_all(data):
     if data != last_emergency:
         logger.info("Updating Twitter status...")
         try:
-            make_twitter_request(client, 'statuses/update', status=tweet)
+            # Assuming you are using Tweepy for Twitter API requests
+            client.create_tweet(text=tweet)
             logger.info("Status updated!")
 
             set_last_emergency(data)
