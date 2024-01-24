@@ -9,7 +9,7 @@ import logging
 # Load environment variables from the .env file
 load_dotenv()
 
-client = tweepy.Client(
+client = tweepy.Client(     #Twitter API client
     consumer_key=os.getenv("API_KEY"),
     consumer_secret=os.getenv("API_KEY_SECRET"),
     access_token=os.getenv("ACCESS_TOKEN"),
@@ -22,12 +22,12 @@ print("auth OK...")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
-EMERGENCY_FILE_PATH = "tmp/last_emergency.txt"
+EMERGENCY_FILE_PATH = "tmp/last_emergency.txt"  # Path to file containing last emergency data
 
 # Decorator for rate limiting
 @sleep_and_retry
 @limits(calls=50, period=900)  # 50 requests every 15 minutes
-def make_request(url):
+def make_request(url):      #User-Agent function
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
@@ -39,19 +39,19 @@ def make_request(url):
     
     return response
 
-def get_last_emergency():
+def get_last_emergency():   #Get last emergency data
     try:
         with open(EMERGENCY_FILE_PATH, "r") as file:
             return file.read().strip()
     except FileNotFoundError:
         return None
 
-def set_last_emergency(last_emergency):
+def set_last_emergency(last_emergency):     #Set last emergency data
     with open(f"/{EMERGENCY_FILE_PATH}", "w") as file:
         last_emergency_str = "\n".join(last_emergency)
         file.write(last_emergency_str)
 
-def get_index_data(url):
+def get_index_data(url):        #Get data from Tilannehuone
     try:
         response = make_request(url)
         soup = BeautifulSoup(response.content, "html.parser")
@@ -67,7 +67,7 @@ def get_index_data(url):
         logger.error(f"An error occurred: {e}")
         return None
 
-def tweet_all(data):
+def tweet_all(data):    #Tweet data
     logger.info("Finding data...")
     tweet = f"Hälytys! Paikkakunnalla {data[0]} ajankohtana {data[1]} tapahtui {data[2]}"
 
@@ -85,7 +85,7 @@ def tweet_all(data):
     else:
         logger.info("No new emergency to tweet.")
 
-def lambda_handler(event, context):
+def lambda_handler(event, context):     #Lambda handler
     url = "https://www.tilannehuone.fi/halytys.php"
     data = get_index_data(url)
 
